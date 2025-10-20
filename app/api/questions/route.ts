@@ -8,6 +8,9 @@ export async function GET(request: NextRequest) {
         const { searchParams } = new URL(request.url);
         const portfolioId = searchParams.get('portfolioId');
 
+        // 데이터베이스 연결 확인
+        await prisma.$connect();
+
         const questions = await prisma.question.findMany({
             where: portfolioId ? { portfolioId } : undefined,
             orderBy: [{ step: 'asc' }, { order: 'asc' }],
@@ -16,7 +19,15 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ questions });
     } catch (error) {
         console.error('Get questions error:', error);
+        
+        // 데이터베이스 연결 실패 시 빈 배열 반환
+        if (error instanceof Error && error.message.includes('connect')) {
+            return NextResponse.json({ questions: [] }, { status: 200 });
+        }
+        
         return NextResponse.json({ error: '질문을 가져오는 중 오류가 발생했습니다.' }, { status: 500 });
+    } finally {
+        await prisma.$disconnect();
     }
 }
 

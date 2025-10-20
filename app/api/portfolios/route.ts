@@ -8,6 +8,9 @@ export async function GET(request: NextRequest) {
         const { searchParams } = new URL(request.url);
         const activeOnly = searchParams.get('active') === 'true';
 
+        // 데이터베이스 연결 확인
+        await prisma.$connect();
+
         const portfolios = await prisma.portfolio.findMany({
             where: activeOnly ? { isActive: true } : undefined,
             orderBy: { order: 'asc' },
@@ -24,7 +27,15 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ portfolios }, { status: 200 });
     } catch (error) {
         console.error('Get portfolios error:', error);
+        
+        // 데이터베이스 연결 실패 시 빈 배열 반환
+        if (error instanceof Error && error.message.includes('connect')) {
+            return NextResponse.json({ portfolios: [] }, { status: 200 });
+        }
+        
         return NextResponse.json({ error: '포트폴리오 조회에 실패했습니다.' }, { status: 500 });
+    } finally {
+        await prisma.$disconnect();
     }
 }
 
