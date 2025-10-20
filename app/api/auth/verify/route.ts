@@ -4,7 +4,13 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET(request: NextRequest) {
     try {
-        const token = request.headers.get('authorization')?.replace('Bearer ', '');
+        const authHeader = request.headers.get('authorization');
+        
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return NextResponse.json({ error: '인증 토큰이 필요합니다.' }, { status: 401 });
+        }
+
+        const token = authHeader.replace('Bearer ', '');
 
         if (!token) {
             return NextResponse.json({ error: '인증 토큰이 필요합니다.' }, { status: 401 });
@@ -12,7 +18,7 @@ export async function GET(request: NextRequest) {
 
         const decoded = verifyToken(token);
 
-        if (!decoded) {
+        if (!decoded || !decoded.userId) {
             return NextResponse.json({ error: '유효하지 않은 토큰입니다.' }, { status: 401 });
         }
 

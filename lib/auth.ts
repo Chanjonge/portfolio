@@ -1,7 +1,7 @@
 import { compare, hash } from 'bcryptjs';
 import { sign, verify } from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.NEXTAUTH_SECRET || 'your-secret-key';
+const JWT_SECRET = process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET || 'fallback-secret-key-for-development-only';
 
 export async function hashPassword(password: string): Promise<string> {
     return await hash(password, 12);
@@ -17,8 +17,13 @@ export function generateToken(userId: string, role: string): string {
 
 export function verifyToken(token: string): { userId: string; role: string } | null {
     try {
-        return verify(token, JWT_SECRET) as { userId: string; role: string };
-    } catch {
+        if (!token || typeof token !== 'string') {
+            return null;
+        }
+        const decoded = verify(token, JWT_SECRET) as { userId: string; role: string };
+        return decoded;
+    } catch (error) {
+        console.error('Token verification error:', error);
         return null;
     }
 }
