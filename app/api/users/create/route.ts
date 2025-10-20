@@ -3,6 +3,9 @@ import { prisma } from '@/lib/prisma';
 import { hashPassword } from '@/lib/auth';
 import { verifyToken } from '@/lib/auth';
 
+// 동적 렌더링 강제
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
     try {
         const token = request.headers.get('authorization')?.replace('Bearer ', '');

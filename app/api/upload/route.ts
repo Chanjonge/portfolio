@@ -3,6 +3,9 @@ import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import { verifyToken } from '@/lib/auth';
 
+// 동적 렌더링 강제
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
     try {
         // 관리자 권한 확인
